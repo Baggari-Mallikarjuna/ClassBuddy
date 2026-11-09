@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Login - ClassBuddy{% endblock %}
+{% block auth_content %}
+<main class="cb-auth-wrapper">
+    <section class="cb-auth-card" aria-labelledby="auth-title">
+        <header class="cb-auth-brand">
+            <span class="cb-auth-logo" aria-hidden="true">
+                <i class="bi bi-mortarboard-fill"></i>
+            </span>
+            <p class="cb-auth-eyebrow">WELCOME BACK</p>
+            <h1 id="auth-title">ClassBuddy</h1>
+            <p class="cb-auth-subtitle">Your smarter student life starts here.</p>
+        </header>
+
+        <form method="POST" action="{{ url_for('auth.login') }}" class="cb-auth-form">
+            <div class="cb-auth-field">
+                <label class="form-label" for="login-email">Email address</label>
+                <input
+                    type="email"
+                    id="login-email"
+                    name="email"
+                    class="form-control"
+                    placeholder="you@example.com"
+                    autocomplete="email"
+                    required
+                >
+            </div>
+            <div class="cb-auth-field">
+                <label class="form-label" for="login-password">Password</label>
+                <input
+                    type="password"
+                    id="login-password"
+                    name="password"
+                    class="form-control"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+            <button type="submit" class="btn btn-primary cb-auth-submit">
+                Login <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+        </form>
+
+        <p class="cb-auth-switch">
+            New to ClassBuddy?
+            <a href="{{ url_for('auth.register') }}">Register here</a>
+        </p>
+    </section>
+</main>
+{% endblock %}

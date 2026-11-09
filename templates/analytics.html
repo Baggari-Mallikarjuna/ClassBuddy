@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Analytics - ClassBuddy{% endblock %}
+{% block page_title %}Attendance Analytics{% endblock %}
+{% block content %}
+
+<div class="row g-3">
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card summary-card">
+            <div class="cb-stat-icon bg-primary"><i class="bi bi-percent"></i></div>
+            <div class="cb-stat-body">
+                <h3 id="overallSummaryValue">0%</h3>
+                <p>Overall Attendance</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card summary-card">
+            <div class="cb-stat-icon bg-success"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="cb-stat-body">
+                <h3 id="presentSummaryValue">0</h3>
+                <p>Present Classes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card summary-card">
+            <div class="cb-stat-icon bg-danger"><i class="bi bi-x-circle-fill"></i></div>
+            <div class="cb-stat-body">
+                <h3 id="absentSummaryValue">0</h3>
+                <p>Absent Classes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card summary-card">
+            <div class="cb-stat-icon bg-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="cb-stat-body">
+                <h3 id="riskSummaryValue">0</h3>
+                <p>Subjects at Risk</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-xl-6">
+        <div class="cb-card">
+            <h5><i class="bi bi-pie-chart-fill text-primary"></i> Subject Attendance</h5>
+            <div class="chart-shell">
+                <canvas id="analyticsSubjectChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="cb-card">
+            <h5><i class="bi bi-graph-up text-primary"></i> Monthly Trend</h5>
+            <div class="chart-shell">
+                <canvas id="analyticsMonthlyChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-xl-4">
+        <div class="cb-card">
+            <h5><i class="bi bi-circle-half text-primary"></i> Present vs Absent</h5>
+            <div class="chart-shell">
+                <canvas id="analyticsPresentAbsentChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-8">
+        <div class="cb-card">
+            <h5><i class="bi bi-bar-chart-fill text-primary"></i> Subject Comparison</h5>
+            <div class="chart-shell">
+                <canvas id="analyticsComparisonChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-12">
+        <div class="cb-card">
+            <h5><i class="bi bi-table text-primary"></i> Subject Breakdown</h5>
+            <div class="table-responsive">
+                <table class="table cb-table" id="subjectBreakdownTable">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Present</th>
+                            <th>Total</th>
+                            <th>Attendance %</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', loadAnalyticsPage);
+</script>
+{% endblock %}

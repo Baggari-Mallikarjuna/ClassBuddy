@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - ClassBuddy{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<section class="cb-hero">
+    <div>
+        <div class="cb-hero-tag">Student productivity dashboard</div>
+        <h1>{{ greeting }}, {{ current_user.name }} 👋</h1>
+        <div class="cb-hero-meta">
+            <span><i class="bi bi-calendar3"></i> {{ today }}</span>
+            <span><i class="bi bi-check2-circle"></i> Attendance target: {{ target_percentage }}%</span>
+        </div>
+        <p class="cb-hero-message">Keep your consistency strong and stay above the class attendance target.</p>
+    </div>
+    <div class="cb-hero-actions">
+        <a href="{{ url_for('attendance.view_attendance') }}" class="btn btn-primary"><i class="bi bi-check2-circle"></i> Mark Attendance</a>
+        <a href="{{ url_for('schedule.view_schedule') }}" class="btn btn-outline-primary"><i class="bi bi-calendar3"></i> View Timetable</a>
+        <a href="{{ url_for('attendance.view_analytics') }}" class="btn btn-outline-primary"><i class="bi bi-graph-up-arrow"></i> View Analytics</a>
+        <button class="btn btn-outline-secondary refresh-predictions" type="button"><i class="bi bi-arrow-repeat"></i> Refresh Predictions</button>
+    </div>
+</section>
+
+<section class="cb-card mt-3 cb-reminder-card" aria-labelledby="email-notification-title">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h5 id="email-notification-title">
+                <i class="bi bi-envelope text-primary"></i>
+                Email Reminder Settings
+            </h5>
+            <p class="mb-1">
+                Reminders are sent to your registered email address,
+                <a href="mailto:{{ current_user.email }}">{{ current_user.email }}</a>.
+            </p>
+            <div class="small text-muted mt-2">
+                {% if email_reminders_enabled %}
+                <span class="cb-reminder-status is-enabled"><span aria-hidden="true"></span>Enabled</span>
+                — Sent {{ reminder_minutes_before }} minutes before class.
+                {% else %}
+                <span class="cb-reminder-status is-disabled"><span aria-hidden="true"></span>Disabled</span>
+                — Reminders are turned off.
+                {% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('settings_page') }}"
+           class="btn btn-outline-primary text-nowrap">Reminder settings</a>
+    </div>
+</section>
+
+{% if attendance_warning %}
+<div class="cb-warning-banner warning-{{ attendance_warning.level }}">
+    <div class="cb-warning-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    <div>
+        <strong>Attendance Warning</strong>
+        <p>Your {{ attendance_warning.subject }} attendance is {{ attendance_warning.percentage }}%. You need to attend the next {{ attendance_warning.required_classes }} classes continuously to reach 75%.</p>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mt-1">
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card">
+            <div class="cb-stat-icon bg-primary"><i class="bi bi-percent"></i></div>
+            <div class="cb-stat-body">
+                <h3>{{ overall_percentage }}%</h3>
+                <p>Overall Attendance</p>
+                <div class="cb-progress"><span style="width: {{ overall_percentage }}%"></span></div>
+                <small>{{ attendance_present }} / {{ attendance_total }} classes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card">
+            <div class="cb-stat-icon bg-info"><i class="bi bi-calendar-day"></i></div>
+            <div class="cb-stat-body">
+                <h3>{{ todays_classes|length }}</h3>
+                <p>Today's Classes</p>
+                <small>{{ completed_classes }} completed / {{ remaining_classes }} remaining</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card">
+            <div class="cb-stat-icon bg-warning"><i class="bi bi-clock-history"></i></div>
+            <div class="cb-stat-body">
+                <h3>{% if next_class %}{{ next_class.class_row.subject }}{% else %}None{% endif %}</h3>
+                <p>Upcoming Class</p>
+                <small>{% if next_class %}{{ next_class.class_row.start_time }} • {{ next_class.class_row.room }}{% else %}No classes left today{% endif %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card">
+            <div class="cb-stat-icon bg-danger"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="cb-stat-body">
+                <h3>{{ high_risk|length }}</h3>
+                <p>High Risk Subjects</p>
+                <small>{% if high_risk %}Needs attention{% else %}Healthy{% endif %}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-xl-6">
+        <div class="cb-card">
+            <div class="cb-section-head">
+                <h5><i class="bi bi-target text-primary"></i> Attendance Goal</h5>
+            </div>
+            <div class="cb-mini-metric">
+                <span>Target</span>
+                <strong>{{ target_percentage }}%</strong>
+            </div>
+            <div class="cb-mini-metric">
+                <span>Current</span>
+                <strong>{{ overall_percentage }}%</strong>
+            </div>
+            <div class="cb-mini-metric">
+                <span>Needed</span>
+                <strong>{% if required_classes %}{{ required_classes }} classes{% else %}On target{% endif %}</strong>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="cb-card">
+            <div class="cb-section-head">
+                <h5><i class="bi bi-fire text-warning"></i> Attendance Streak</h5>
+            </div>
+            <div class="cb-streak-badge">
+                <span>{{ streak }}</span>
+                <small>classes attended consecutively</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-xl-7">
+        <div class="cb-card">
+            <div class="cb-section-head">
+                <h5><i class="bi bi-book-half text-primary"></i> Subject Attendance</h5>
+                <a href="{{ url_for('schedule.view_schedule') }}" class="btn btn-sm btn-outline-primary">Add Subject</a>
+            </div>
+            {% if subject_cards %}
+            <div class="cb-subject-grid">
+                {% for subject in subject_cards %}
+                <article class="cb-subject-card status-{{ subject.status_class }}">
+                    <div class="cb-subject-head">
+                        <div>
+                            <h6>{{ subject.subject }}</h6>
+                            <small>{{ subject.subject[:3]|upper }}-{{ loop.index }}</small>
+                        </div>
+                        <span class="cb-badge badge-{{ subject.status_class }}">{{ subject.status }}</span>
+                    </div>
+                    <div class="cb-subject-score">{{ subject.percentage }}%</div>
+                    <p>{{ subject.present }} / {{ subject.total }} classes</p>
+                    <div class="cb-progress"><span style="width: {{ subject.percentage }}%"></span></div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="cb-empty-state">
+                <div class="cb-empty-icon"><i class="bi bi-book"></i></div>
+                <h6>No subjects added yet</h6>
+                <p>Add your timetable and subjects to start tracking attendance.</p>
+                <a href="{{ url_for('schedule.view_schedule') }}" class="btn btn-primary">Add Subject</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-xl-5">
+        <div class="cb-card">
+            <div class="cb-section-head">
+                <h5><i class="bi bi-calendar-day text-primary"></i> Today's Classes</h5>
+                {% if next_class %}
+                <span class="small-text">Next class in {{ next_class.minutes_until }} minutes</span>
+                {% endif %}
+            </div>
+            {% if todays_classes %}
+            <div class="cb-timeline">
+                {% for class_row in todays_classes %}
+                <div class="cb-timeline-item {% if class_row.is_current %}active{% endif %}">
+                    <div class="cb-timeline-dot"></div>
+                    <div class="cb-timeline-body">
+                        <div class="cb-timeline-top">
+                            <span class="cb-time-pill">{{ class_row.start_time }} - {{ class_row.end_time }}</span>
+                            {% if class_row.attendance_status == 'Present' %}
+                            <span class="cb-status-pill present"><i class="bi bi-check-circle-fill"></i> Present</span>
+                            {% elif class_row.attendance_status == 'Absent' %}
+                            <span class="cb-status-pill absent"><i class="bi bi-x-circle-fill"></i> Absent</span>
+                            {% else %}
+                            <span class="cb-status-pill pending"><i class="bi bi-circle"></i> Pending</span>
+                            {% endif %}
+                        </div>
+                        <h6>{{ class_row.subject }}</h6>
+                        <p>{{ class_row.faculty }} • {{ class_row.room }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="cb-empty-state compact">
+                <div class="cb-empty-icon"><i class="bi bi-calendar-x"></i></div>
+                <h6>No classes scheduled</h6>
+                <p>Add your class timetable to see today’s schedule here.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-xl-6">
+        <div class="cb-card">
+            <div class="cb-section-head">
+                <h5><i class="bi bi-shield-exclamation text-danger"></i> Risk Predictions</h5>
+                <button type="button" class="btn btn-sm btn-outline-danger refresh-predictions"><i class="bi bi-arrow-repeat"></i> Refresh</button>
+            </div>
+            {% if predictions %}
+            <div class="cb-risk-list">
+                {% for prediction in predictions %}
+                <div class="cb-risk-item risk-{{ prediction.risk_level|lower }}">
+                    <div class="cb-risk-header">
+                        <strong>{{ prediction.subject }}</strong>
+                        <span class="cb-badge badge-{{ prediction.risk_level|lower }}">{{ prediction.risk_level }} Risk</span>
+                    </div>
+                    <div class="cb-risk-score">Risk: {{ prediction.probability }}%</div>
+                    <p>{{ prediction.reason }}</p>
+                    <small>{{ prediction.recommendation }}</small>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="cb-empty-state compact">
+                <div class="cb-empty-icon"><i class="bi bi-robot"></i></div>
+                <h6>Predictions will appear here</h6>
+                <p>Mark some attendance first so the system can analyze your pattern.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-xl-6">
+        <div class="cb-card">
+            <div class="cb-section-head">
+                <h5><i class="bi bi-clock-history text-primary"></i> Recent Attendance</h5>
+                <a href="{{ url_for('attendance.view_attendance') }}" class="btn btn-sm btn-outline-primary">View Full History</a>
+            </div>
+            {% if recent_attendance %}
+            <div class="cb-recent-list">
+                {% for record in recent_attendance %}
+                <div class="cb-recent-row">
+                    <div>
+                        <strong>{{ record.date }}</strong>
+                        <small>{{ record.subject }}</small>
+                    </div>
+                    <div class="cb-recent-meta">
+                        <span class="cb-status-pill {% if record.status == 'Present' %}present{% else %}absent{% endif %}">
+                            {% if record.status == 'Present' %}<i class="bi bi-check-circle-fill"></i>{% else %}<i class="bi bi-x-circle-fill"></i>{% endif %}
+                            {{ record.status }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="cb-empty-state compact">
+                <div class="cb-empty-icon"><i class="bi bi-file-earmark-text"></i></div>
+                <h6>No attendance yet</h6>
+                <p>Start marking attendance to see your progress.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const refreshButtons = document.querySelectorAll('.refresh-predictions');
+        refreshButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                fetch("{{ url_for('prediction.refresh_predictions') }}", { method: 'POST' })
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert(data.error || 'Could not refresh predictions.');
+                        }
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

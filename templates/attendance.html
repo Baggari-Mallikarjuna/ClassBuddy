@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}Attendance - ClassBuddy{% endblock %}
+{% block page_title %}Attendance Logger{% endblock %}
+{% block content %}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card summary-card">
+            <div class="cb-stat-icon bg-primary"><i class="bi bi-file-earmark-check"></i></div>
+            <div class="cb-stat-body">
+                <h3>{{ summary.total_records }}</h3>
+                <p>Total Logged</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card summary-card">
+            <div class="cb-stat-icon bg-success"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="cb-stat-body">
+                <h3>{{ summary.present_count }}</h3>
+                <p>Present</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card summary-card">
+            <div class="cb-stat-icon bg-danger"><i class="bi bi-x-circle-fill"></i></div>
+            <div class="cb-stat-body">
+                <h3>{{ summary.absent_count }}</h3>
+                <p>Absent</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="cb-stat-card summary-card">
+            <div class="cb-stat-icon bg-info"><i class="bi bi-percent"></i></div>
+            <div class="cb-stat-body">
+                <h3>{{ summary.average_pct }}%</h3>
+                <p>Average</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-4">
+        <div class="cb-card">
+            <h5><i class="bi bi-clipboard2-check-fill text-primary"></i> Mark Attendance</h5>
+            <form method="POST" action="{{ url_for('attendance.mark_attendance') }}">
+                {% if return_day %}
+                <input type="hidden" name="return_day" value="{{ return_day }}">
+                {% endif %}
+                <div class="mb-3">
+                    <label class="form-label">Subject</label>
+                    <select name="subject" class="form-select" required>
+                        {% if subjects %}
+                            {% for subject in subjects %}
+                            <option value="{{ subject }}" {% if filters.subject == subject %}selected{% endif %}>{{ subject }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="">No subjects added</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ today }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="status" id="statusPresent" value="Present" checked>
+                        <label class="btn btn-outline-success" for="statusPresent"><i class="bi bi-check-circle"></i> Present</label>
+
+                        <input type="radio" class="btn-check" name="status" id="statusAbsent" value="Absent">
+                        <label class="btn btn-outline-danger" for="statusAbsent"><i class="bi bi-x-circle"></i> Absent</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Save Attendance</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-xl-8">
+        <div class="cb-card">
+            <div class="cb-section-head">
+                <h5><i class="bi bi-clock-history text-primary"></i> Attendance History</h5>
+                <a href="{{ url_for('attendance.export_attendance_csv') }}" class="btn btn-sm btn-outline-primary">Export CSV</a>
+            </div>
+
+            <form method="GET" class="cb-filter-form">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label class="form-label">Subject</label>
+                        <select name="subject" class="form-select">
+                            <option value="">All subjects</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject }}" {% if filters.subject == subject %}selected{% endif %}>{{ subject }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" name="date" class="form-control" value="{{ filters.date }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="">All</option>
+                            <option value="Present" {% if filters.status == 'Present' %}selected{% endif %}>Present</option>
+                            <option value="Absent" {% if filters.status == 'Absent' %}selected{% endif %}>Absent</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Apply</button>
+                    </div>
+                </div>
+            </form>
+
+            {% if history %}
+            <div class="table-responsive mt-3">
+                <table class="table cb-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in history %}
+                        <tr>
+                            <td>{{ record.date }}</td>
+                            <td>{{ record.subject }}</td>
+                            <td>
+                                <span class="cb-status-pill {% if record.status == 'Present' %}present{% else %}absent{% endif %}">
+                                    {% if record.status == 'Present' %}<i class="bi bi-check-circle-fill"></i>{% else %}<i class="bi bi-x-circle-fill"></i>{% endif %}
+                                    {{ record.status }}
+                                </span>
+                            </td>
+                            <td>{{ summary.average_pct }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="cb-empty-state compact mt-3">
+                <div class="cb-empty-icon"><i class="bi bi-bar-chart"></i></div>
+                <h6>No attendance data yet</h6>
+                <p>Start marking attendance to see your analytics.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="cb-card mt-3">
+    <h5><i class="bi bi-calculator text-primary"></i> Attendance Calculator</h5>
+    <div class="cb-calculator-grid">
+        <div class="cb-calculator-box">
+            <span>How many classes can I miss while staying above 75%?</span>
+            <strong id="missLimitText">--</strong>
+        </div>
+        <div class="cb-calculator-box">
+            <span>How many classes must I attend consecutively to reach 75%?</span>
+            <strong id="attendanceTargetText">--</strong>
+        </div>
+        <div class="cb-calculator-box">
+            <span>Attendance after next N classes</span>
+            <div class="d-flex gap-2 align-items-center mt-2">
+                <input type="number" id="nextClassesInput" class="form-control" min="1" value="3" />
+                <button type="button" class="btn btn-primary" id="calculateNextClassesBtn">Check</button>
+            </div>
+            <strong id="nextClassesText" class="mt-2 d-block">--</strong>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const summary = {{ summary | tojson }};
+        const currentTotal = summary.total_records || 0;
+        const currentPresent = summary.present_count || 0;
+        const target = 75;
+
+        const missLimit = function () {
+            if (currentTotal === 0) return 0;
+            const percentage = (currentPresent / currentTotal) * 100;
+            if (percentage <= target) return 0;
+            return Math.max(0, Math.floor((currentPresent - (target / 100) * currentTotal) / (target / 100)));
+        };
+
+        const consecutiveNeeded = function () {
+            if (currentTotal === 0) return 0;
+            const needed = Math.max(0, Math.ceil((target * currentTotal - 100 * currentPresent) / (100 - target)));
+            return needed;
+        };
+
+        const afterNextClasses = function (n) {
+            if (currentTotal === 0) return 0;
+            const nextTotal = currentTotal + n;
+            const nextPresent = currentPresent + n;
+            return Math.round((nextPresent / nextTotal) * 1000) / 10;
+        };
+
+        document.getElementById('missLimitText').textContent = currentTotal ? missLimit() + ' classes' : 'No data yet';
+        document.getElementById('attendanceTargetText').textContent = currentTotal ? consecutiveNeeded() + ' classes' : 'No data yet';
+
+        document.getElementById('calculateNextClassesBtn').addEventListener('click', function () {
+            const n = Number(document.getElementById('nextClassesInput').value || 0);
+            const result = afterNextClasses(n);
+            document.getElementById('nextClassesText').textContent = currentTotal ? 'After ' + n + ' classes, attendance would be ' + result + '%' : 'No data yet';
+        });
+    });
+</script>
+{% endblock %}

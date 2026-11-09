@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ClassBuddy{% endblock %}</title>
+    <link href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body data-theme="light">
+    {% if current_user.is_authenticated %}
+    <div class="cb-layout">
+        <aside class="cb-sidebar" id="cbSidebar">
+            <div class="cb-sidebar-brand">
+                <span class="cb-brand-mark"><i class="bi bi-mortarboard-fill"></i></span>
+                <span>ClassBuddy</span>
+            </div>
+            <nav class="cb-nav">
+                <a href="{{ url_for('dashboard') }}" class="cb-nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill"></i> Dashboard
+                </a>
+                <a href="{{ url_for('schedule.view_schedule') }}" class="cb-nav-link {% if request.endpoint == 'schedule.view_schedule' %}active{% endif %}">
+                    <i class="bi bi-calendar-week-fill"></i> Timetable
+                </a>
+                <a href="{{ url_for('attendance.view_attendance') }}" class="cb-nav-link {% if request.endpoint == 'attendance.view_attendance' %}active{% endif %}">
+                    <i class="bi bi-clipboard2-check-fill"></i> Attendance
+                </a>
+                <a href="{{ url_for('attendance.view_analytics') }}" class="cb-nav-link {% if request.endpoint == 'attendance.view_analytics' %}active{% endif %}">
+                    <i class="bi bi-bar-chart-line-fill"></i> Analytics
+                </a>
+                <a href="{{ url_for('settings_page') }}" class="cb-nav-link {% if request.endpoint == 'settings_page' %}active{% endif %}">
+                    <i class="bi bi-gear-fill"></i> Settings
+                </a>
+            </nav>
+            <div class="cb-sidebar-footer">
+                <a href="{{ url_for('auth.logout') }}" class="cb-nav-link">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <div class="cb-main">
+            <header class="cb-topbar">
+                <button class="cb-toggle-btn" id="cbSidebarToggle" aria-label="Toggle sidebar"><i class="bi bi-list"></i></button>
+                <div class="cb-topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+                <div class="cb-topbar-actions">
+                    <button class="cb-icon-btn" type="button" data-theme-toggle aria-label="Toggle theme">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <a href="{{ url_for('settings_page') }}" class="cb-topbar-user">
+                        <i class="bi bi-person-circle"></i>
+                        <span>{{ current_user.name }}</span>
+                    </a>
+                </div>
+            </header>
+
+            <main class="cb-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% else %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="cb-auth-flash">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block auth_content %}{% endblock %}
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/chart.umd.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% if current_user.is_authenticated %}
+    <script src="{{ url_for('static', filename='js/reminders.js') }}"></script>
+    {% endif %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

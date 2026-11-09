@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Register - ClassBuddy{% endblock %}
+{% block auth_content %}
+<main class="cb-auth-wrapper">
+    <section class="cb-auth-card" aria-labelledby="auth-title">
+        <header class="cb-auth-brand">
+            <span class="cb-auth-logo" aria-hidden="true">
+                <i class="bi bi-mortarboard-fill"></i>
+            </span>
+            <p class="cb-auth-eyebrow">GET STARTED</p>
+            <h1 id="auth-title">Join ClassBuddy</h1>
+            <p class="cb-auth-subtitle">Create your account and make every class count. Your password is only for ClassBuddy; never enter a Gmail password or App Password.</p>
+        </header>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" class="cb-auth-form">
+            <div class="cb-auth-field">
+                <label class="form-label" for="register-name">Full name</label>
+                <input
+                    type="text"
+                    id="register-name"
+                    name="name"
+                    class="form-control"
+                    placeholder="Jane Doe"
+                    autocomplete="name"
+                    required
+                >
+            </div>
+            <div class="cb-auth-field">
+                <label class="form-label" for="register-email">Email address</label>
+                <input
+                    type="email"
+                    id="register-email"
+                    name="email"
+                    class="form-control"
+                    placeholder="you@example.com"
+                    autocomplete="email"
+                    required
+                >
+            </div>
+            <div class="cb-auth-field">
+                <label class="form-label" for="register-password">Password</label>
+                <input
+                    type="password"
+                    id="register-password"
+                    name="password"
+                    class="form-control"
+                    placeholder="Create a password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                >
+            </div>
+            <div class="cb-auth-field">
+                <label class="form-label" for="register-confirm-password">Confirm ClassBuddy password</label>
+                <input
+                    type="password"
+                    id="register-confirm-password"
+                    name="confirm_password"
+                    class="form-control"
+                    placeholder="Enter your password again"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                >
+            </div>
+            <button type="submit" class="btn btn-primary cb-auth-submit">
+                Register <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+        </form>
+
+        <p class="cb-auth-switch">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}">Login here</a>
+        </p>
+    </section>
+</main>
+{% endblock %}

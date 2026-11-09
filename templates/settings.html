@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Settings - ClassBuddy{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+
+<div class="row g-3">
+    <div class="col-xl-4">
+        <div class="cb-card">
+            <h5><i class="bi bi-person-circle text-primary"></i> Profile</h5>
+            <div class="cb-mini-metric">
+                <span>Username</span>
+                <strong>{{ current_user.name }}</strong>
+            </div>
+            <div class="cb-mini-metric">
+                <span>Email</span>
+                <strong>{{ current_user.email }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-8">
+        <div class="cb-card">
+            <h5><i class="bi bi-sliders text-primary"></i> Preferences</h5>
+            <form>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Theme</label>
+                        <select class="form-select" id="themePreference">
+                            <option value="light">Light Mode</option>
+                            <option value="dark">Dark Mode</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Attendance Target %</label>
+                        <input type="number" class="form-control" value="75" min="50" max="100" id="attendanceTargetSetting">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="cb-card mt-3">
+    <div class="cb-section-head">
+        <h5><i class="bi bi-envelope text-primary"></i> Email Reminder Settings</h5>
+        <span class="cb-reminder-status {% if email_reminders_enabled %}is-enabled{% else %}is-disabled{% endif %}">
+            <span aria-hidden="true"></span>
+            {{ 'Enabled' if email_reminders_enabled else 'Disabled' }}
+        </span>
+    </div>
+    <p class="mb-4">
+        Reminders are sent to your registered email address:
+        <a href="mailto:{{ current_user.email }}">{{ current_user.email }}</a>
+    </p>
+    <form method="POST" action="{{ url_for('reminder.update_email_reminder_settings') }}">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label" for="emailRemindersEnabled">Reminder status</label>
+                <div class="form-check form-switch cb-reminder-switch">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                           id="emailRemindersEnabled" name="email_reminders_enabled"
+                           value="enabled" {% if email_reminders_enabled %}checked{% endif %}>
+                    <input type="hidden" name="email_reminders_enabled" value="disabled">
+                    <label class="form-check-label" for="emailRemindersEnabled">
+                        {{ 'Enabled' if email_reminders_enabled else 'Disabled' }}
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label" for="reminderMinutes">Send reminder</label>
+                <select class="form-select" id="reminderMinutes" name="reminder_minutes">
+                    {% for minutes in (5, 10, 15, 20, 30) %}
+                    <option value="{{ minutes }}" {% if reminder_minutes_before == minutes %}selected{% endif %}>
+                        {{ minutes }} minutes before class
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-check2"></i> Save Settings
+                </button>
+            </div>
+        </div>
+        <p class="small text-muted mt-3 mb-0">
+            {% if email_reminders_enabled %}
+            Enabled — sent {{ reminder_minutes_before }} minutes before class.
+            {% else %}
+            Reminders are currently disabled. Your selected time is saved.
+            {% endif %}
+        </p>
+    </form>
+    <div class="mt-4">
+        <form method="POST" action="{{ url_for('reminder.send_test_email_route') }}">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-send"></i> Send Test Email
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const themeSelect = document.getElementById('themePreference');
+        const storageKey = 'classbuddy-theme';
+        const savedTheme = localStorage.getItem(storageKey) || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        if (themeSelect) {
+            themeSelect.value = savedTheme;
+            themeSelect.addEventListener('change', function () {
+                const value = this.value;
+                document.body.setAttribute('data-theme', value);
+                localStorage.setItem(storageKey, value);
+            });
+        }
+    });
+</script>
+{% endblock %}
